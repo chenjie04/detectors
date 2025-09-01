@@ -99,6 +99,10 @@ class Config(dict):
         for k, v in self.items():
             if isinstance(v, Config):
                 result[k] = v.to_dict()
+            elif isinstance(v, list):
+                result[k] = [
+                    item.to_dict() if isinstance(item, Config) else item for item in v
+                ]
             else:
                 result[k] = v
         return result
@@ -123,15 +127,16 @@ class Config(dict):
         s = ''
         for k, v in self.items():
             if isinstance(v, Config):
-                s += ' ' * indent + str(k) + ':\n'
-                s += v.pretty_text(indent + 4)
+                s += ' ' * indent + str(k) + ' = dict(\n'
+                s += v.pretty_text(indent + 4) + ' ' * (indent + 4) + '),\n'
             elif isinstance(v, list):
-                s += ' ' * indent + str(k) + ':\n'
+                s += ' ' * indent + str(k) + ' = [\n'
                 for item in v:
                     if isinstance(item, Config):
-                        s += item.pretty_text(indent + 4)
+                        s += ' ' * (indent + 4) +'dict(\n' + item.pretty_text(indent + 8) + ' ' * (indent + 4) + '),\n'
                     else:
                         s += ' ' * (indent + 4) + str(item) + '\n'
+                s += ' ' * (indent + 4) + '],\n'
             else:
-                s += ' ' * indent + str(k) + ': ' + str(v) + '\n'
+                s += ' ' * indent + str(k) + ' = ' + str(v) + ',\n'
         return s
